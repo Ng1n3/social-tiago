@@ -14,7 +14,7 @@ type CreatePostPayload struct {
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
-	if err := readJSON(w, r, payload); err != nil {
+	if err := readJSON(w, r, &payload); err != nil {
 		writeJsonError(w, http.StatusBadRequest, err.Error())
 	}
 
