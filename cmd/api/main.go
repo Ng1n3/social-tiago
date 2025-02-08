@@ -1,10 +1,14 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	"github.com/Ng1n3/social/internal/env"
+)
 
 func main() {
 	cfg := config{
-		addr: ":5000",
+		addr: env.GetString("ADDR", ":3050"),
 	}
 	app := &application{
 		config: cfg,
