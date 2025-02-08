@@ -12,11 +12,19 @@ import (
 
 type application struct {
 	config config
-  store store.Storage 
+	store  store.Storage
 }
 
 type config struct {
+  db     dbConfig
 	addr string
+}
+
+type dbConfig struct {
+	addr         string
+	maxOpenConns int
+	maxIdleConns int
+	maxIdleTime  string
 }
 
 func (app *application) mount() http.Handler {
