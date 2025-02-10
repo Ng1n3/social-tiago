@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/lib/pq"
@@ -54,17 +55,37 @@ func (s *UserStore) DeleteSeedAll(ctx context.Context) error {
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
-			return err
+		return err
 	}
 
-	// rows, err := result.RowsAffected()
-	// if err != nil {
-	// 		return err
-	// }
-
-	// if rows == 0 {
-	// 		return ErrNotFound
-	// }
 	fmt.Println("Successfully cleaned comments table!")
 	return nil
+}
+
+func (s *UserStore) GetByID(ctx context.Context, id int64) (*User, error) {
+	query := `
+		SELECT  id, username, email, password, created_at FROM users WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var user User
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -157,7 +156,6 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrNotFound):
-				fmt.Println("hey buddy I'm here!!!")
 				app.notFound(w, r, err)
 			default:
 				app.internalServerError(w, r, err)
