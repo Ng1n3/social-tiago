@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
@@ -26,7 +27,7 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
-	
+
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -42,5 +43,28 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 		return err
 	}
 
+	return nil
+}
+
+func (s *UserStore) DeleteSeedAll(ctx context.Context) error {
+	query := `DELETE FROM users`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query)
+	if err != nil {
+			return err
+	}
+
+	// rows, err := result.RowsAffected()
+	// if err != nil {
+	// 		return err
+	// }
+
+	// if rows == 0 {
+	// 		return ErrNotFound
+	// }
+	fmt.Println("Successfully cleaned comments table!")
 	return nil
 }

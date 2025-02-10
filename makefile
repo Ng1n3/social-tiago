@@ -13,6 +13,10 @@ migrate-up:
 migrate-down:
 	@migrate -path=$(MIGRATION_PATH) -database="$(DB_ADDR)" down
 
+.PHONY: seed
+seed:
+	DB_ADDR=$(DB_ADDR) go run cmd/migrate/seed/main.go
+
 # Add this to handle arguments
 %:
 	@:

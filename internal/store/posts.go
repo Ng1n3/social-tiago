@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 )
@@ -32,7 +33,7 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
-	
+
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -123,5 +124,29 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *PostStore) DeleteSeedAll(ctx context.Context) error {
+	query := `DELETE FROM posts`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query)
+	if err != nil {
+			return err
+	}
+
+	// rows, err := result.RowsAffected()
+	// if err != nil {
+	// 		return err
+	// }
+
+	// if rows == 0 {
+	// 		return ErrNotFound
+	// }
+
+	fmt.Println("Successfully cleaned comments table!")
 	return nil
 }
