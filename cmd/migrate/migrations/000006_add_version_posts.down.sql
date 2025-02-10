@@ -1,0 +1,1 @@
+DROP TABLE posts DROP COLUMN version;
