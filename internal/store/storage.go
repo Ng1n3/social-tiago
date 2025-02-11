@@ -26,6 +26,10 @@ type Storage struct {
 		DeleteSeedAll(context.Context) error
 		GetByID(context.Context, int64) (*User, error)
 	}
+	Followers interface {
+		Follow(ctx context.Context, followerId, userId int64) error
+		Unfollow(ctx context.Context, followerId, userId int64) error
+	}
 	Comments interface {
 		GetByPostID(context.Context, int64) (*[]Comment, error)
 		Create(context.Context, *Comment) error
@@ -38,5 +42,6 @@ func NewStorage(db *sql.DB) Storage {
 		Posts:    &PostStore{db},
 		Users:    &UserStore{db},
 		Comments: &CommentStore{db},
+		Followers: &FollowerStore{db},
 	}
 }
