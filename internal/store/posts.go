@@ -31,7 +31,7 @@ type PostStore struct {
 	db *sql.DB
 }
 
-func (s *PostStore) GetUserFeed(ctx context.Context, id int64) ([]PostWithMetadata, error) {
+func (s *PostStore) GetUserFeed(ctx context.Context, id int64, fq PaginationFeedQuery) ([]PostWithMetadata, error) {
 	query := `
 		select p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags, u.username, COUNT(c.id) as comments_count from posts p
 		left join comments c on c.post_id = p.id
@@ -39,12 +39,13 @@ func (s *PostStore) GetUserFeed(ctx context.Context, id int64) ([]PostWithMetada
 		join followers f on f.follower_id = p.user_id or p.user_id = $1
 		where f.user_id = $1 or p.user_id = $1
 		group by p.id, u.username
-		order by p.created_at desc;
+		order by p.created_at ` + fq.Sort + `
+		LIMIT $2 OFFSET $3;
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, id)
+	rows, err := s.db.QueryContext(ctx, query, id, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, err
 	}
