@@ -20,6 +20,7 @@ type Storage struct {
 		Update(context.Context, *Post) error
 		Delete(context.Context, int64) error
 		DeleteSeedAll(context.Context) error
+		GetUserFeed(context.Context, int64) ([]PostWithMetadata, error)
 	}
 	Users interface {
 		Create(context.Context, *User) error
@@ -39,9 +40,9 @@ type Storage struct {
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
-		Posts:    &PostStore{db},
-		Users:    &UserStore{db},
-		Comments: &CommentStore{db},
+		Posts:     &PostStore{db},
+		Users:     &UserStore{db},
+		Comments:  &CommentStore{db},
 		Followers: &FollowerStore{db},
 	}
 }
