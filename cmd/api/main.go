@@ -11,16 +11,36 @@ import (
 
 const version = "0.0.1"
 
+//	@title			GopherSOcial API
+//	@version		1.0
+//	@description	API for GopherSocial, a social network for gophers
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@BasePath					/v1
+//
+//	@securityDefinitions.apiKey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+//	@description
+
 func main() {
 	cfg := config{
-		addr: env.GetString("ADDR", ":3050"),
+		addr:   env.GetString("ADDR", ":3050"),
+		apiURL: env.GetString("EXTERNAL_URL", "localhost:5000"),
 		db: dbConfig{
-			addr: env.GetString("DB_ADDR", "postgres://admin:superpassword@localhost:5434/social?sslmode=disable"),
+			addr:         env.GetString("DB_ADDR", "postgres://admin:superpassword@localhost:5434/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
-    env: env.GetString("ENV", "development"),
+		env: env.GetString("ENV", "development"),
 	}
 
 	db, err := db.New(

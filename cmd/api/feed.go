@@ -18,6 +18,7 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 	fq, err := fq.Parse(r)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
+		return
 	}
 
 	if err := Validate.Struct(fq); err != nil {
@@ -26,7 +27,7 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	ctx := r.Context()
-	feed, err := app.store.Posts.GetUserFeed(ctx, int64(312), fq)
+	feed, err := app.store.Posts.GetUserFeed(ctx, int64(304), fq)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return
