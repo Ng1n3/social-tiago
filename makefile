@@ -19,7 +19,7 @@ seed:
 
 .PHONY: gen-docs
 gen-docs:
-	@swag init -g ./api/main.go -d cmd,internal && swag fmt
+	@swag init -g ./cmd/api/main.go -d . && swag fmt
 
 # Add this to handle arguments
 %:

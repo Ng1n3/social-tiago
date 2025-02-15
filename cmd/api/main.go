@@ -29,7 +29,6 @@ const version = "0.0.1"
 //	@in							header
 //	@name						Authorization
 //	@description
-
 func main() {
 	cfg := config{
 		addr:   env.GetString("ADDR", ":3050"),
