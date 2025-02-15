@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
-
 	"github.com/Ng1n3/social/internal/db"
 	"github.com/Ng1n3/social/internal/env"
 	"github.com/Ng1n3/social/internal/store"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
 const version = "0.0.1"
@@ -23,12 +22,12 @@ const version = "0.0.1"
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@BasePath					/v1
+// @BasePath					/v1
 //
-//	@securityDefinitions.apiKey	ApiKeyAuth
-//	@in							header
-//	@name						Authorization
-//	@description
+// @securityDefinitions.apiKey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 	cfg := config{
 		addr:   env.GetString("ADDR", ":3050"),
@@ -42,6 +41,11 @@ func main() {
 		env: env.GetString("ENV", "development"),
 	}
 
+	// Logger
+	logger := zap.Must(zap.NewDevelopment()).Sugar()
+	defer logger.Sync()
+
+	//Database
 	db, err := db.New(
 		cfg.db.addr,
 		cfg.db.maxOpenConns,
@@ -50,18 +54,19 @@ func main() {
 	)
 
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 	defer db.Close()
-	log.Println("database connection pool established")
+	logger.Info("database connection pool established")
 
 	store := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  store,
+		logger: logger,
 	}
 
 	mux := app.mount()
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 }
