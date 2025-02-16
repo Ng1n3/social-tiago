@@ -126,7 +126,9 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 			return err
 		}
 		// create the user invite
+		// fmt.Println("I got here dude!")
 		if err := s.createUserInvitation(ctx, tx, token, invitationExp, user.ID); err != nil {
+			// fmt.Println("Here mofucker!!")
 			return err
 		}
 
@@ -137,13 +139,14 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 func (s *UserStore) Activate(ctx context.Context, token string) error {
 	return withTx(s.db, ctx, func(tx *sql.Tx) error {
 		// 1. find the user that thish token belongs to
+
 		user, err := s.getUserFromInvitation(ctx, tx, token)
 		if err != nil {
 			return err
 		}
 
 		// 2. updated the user's active status
-		user.isActive = true
+		user.IsActive = true
 		if err := s.update(ctx, tx, user); err != nil {
 			return err
 		}
@@ -185,7 +188,7 @@ func (s *UserStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token
 	defer cancel()
 
 	user := &User{}
-	err := tx.QueryRowContext(ctx, query, hashToken, time.Now()).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt, &user.isActive)
+	err := tx.QueryRowContext(ctx, query, hashToken, time.Now()).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt, &user.IsActive)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -199,12 +202,12 @@ func (s *UserStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token
 
 func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, userID int64) error {
 	query := `
-		INSERT INTO user_invitations (token, user_id, expiry) VALUES ($1, $2, $3)
+		INSERT INTO users_invitations (token, user_id, expiry) VALUES ($1, $2, $3)
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := tx.ExecContext(ctx, query, userID, token, time.Now().Add(exp))
+	_, err := tx.ExecContext(ctx, query, token, userID, time.Now().Add(exp))
 	if err != nil {
 		return err
 	}
@@ -219,7 +222,7 @@ func (s *UserStore) update(ctx context.Context, tx *sql.Tx, user *User) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := tx.ExecContext(ctx, query, user.Username, user.Email, user.isActive, user.ID)
+	_, err := tx.ExecContext(ctx, query, user.Username, user.Email, user.IsActive, user.ID)
 	if err != nil {
 		return err
 	}

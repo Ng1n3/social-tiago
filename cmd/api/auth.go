@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	// "fmt"
 	"net/http"
 
 	"github.com/Ng1n3/social/internal/store"
@@ -28,7 +29,7 @@ type UserWithToken struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		RegisterUserPayload	true	"User credentials"
-//	@Success		201		{object}	UserWithToken			"User registered"
+//	@Success		201		{object}	UserWithToken		"User registered"
 //	@Failure		400		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/authentication/user [post]
@@ -71,6 +72,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		case store.ErrDuplicateUsername:
 			app.badRequestResponse(w, r, err)
 		default:
+      // fmt.Println("Here dude!")
 			app.internalServerError(w, r, err)
 		}
 		return
