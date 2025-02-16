@@ -19,11 +19,16 @@ type application struct {
 	logger *zap.SugaredLogger
 }
 
+type mailConfig struct {
+	exp time.Duration
+}
+
 type config struct {
 	db     dbConfig
 	addr   string
 	env    string
 	apiURL string
+	mail   mailConfig
 }
 
 type dbConfig struct {
@@ -64,6 +69,7 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/users", func(r chi.Router) {
+			r.Put("/activate/{token}", app.activateUserHandler)
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.usersContextMiddleware)
 				r.Get("/", app.getUserHandler)
@@ -74,6 +80,10 @@ func (app *application) mount() http.Handler {
 			r.Group(func(chi.Router) {
 				r.Get("/feed", app.getUserFeedHandler)
 			})
+		})
+
+		r.Route("/authentication", func(r chi.Router) {
+			r.Post("/user", app.registerUserHandler)
 		})
 	})
 

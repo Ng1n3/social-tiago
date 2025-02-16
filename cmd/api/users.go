@@ -152,3 +152,37 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 		app.internalServerError(w, r, err)
 	}
 }
+
+// ActivateUser godoc
+//
+// @Summary Activates/Register a user
+// @Description Activates/Register a user by invitation token
+// @Tags users
+// @Produce json
+// @Param token path string true "Invitation token"
+// @Success 204 {string} string "user activated"
+// @Failure 404 {object} error
+//
+//	@Failure 500 {object} error
+//
+// @Security ApiKeyAuth
+// @Router /users/acivate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+
+	ctx := r.Context()
+	err := app.store.Users.Activate(ctx, token)
+	if err != nil {
+		switch err {
+		case store.ErrNotFound:
+			app.notFound(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
+		app.internalServerError(w, r, err)
+	}
+}

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
@@ -167,7 +168,7 @@ var comments = []string{
 	"Keep writing!",
 }
 
-func Seed(store store.Storage) {
+func Seed(store store.Storage, db *sql.DB) {
 	ctx := context.Background()
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -178,14 +179,17 @@ func Seed(store store.Storage) {
 	}
 
 	users := generateUsers(100)
+	tx, _ := db.BeginTx(ctx, nil)
 	log.Println("Creating users...")
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
+		if err := store.Users.Create(ctx, tx, user); err != nil {
+			_ = tx.Rollback()
 			log.Println("Error creating user:", err)
 			return
 		}
 	}
 
+	tx.Commit()
 	posts := generatePost(200, users)
 	log.Println("Creating posts...")
 	for _, post := range posts {
@@ -218,7 +222,7 @@ func generateUsers(num int) []*store.User {
 			// Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", 1) + "@example.com",
 			Username: username,
 			Email:    username + "@example.com",
-			Password: "12345",
+			// Password: "12345",
 		}
 	}
 
