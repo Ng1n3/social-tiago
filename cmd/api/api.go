@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Ng1n3/social/docs" // This is required to generate swagger docs
+	"github.com/Ng1n3/social/internal/mailer"
 	"github.com/Ng1n3/social/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,10 +18,17 @@ type application struct {
 	config config
 	store  store.Storage
 	logger *zap.SugaredLogger
+	mailer mailer.Client
 }
 
 type mailConfig struct {
-	exp time.Duration
+	sendGrid  sendGridConfig
+	fromEmail string
+	exp       time.Duration
+}
+
+type sendGridConfig struct {
+	apiKey string
 }
 
 type config struct {
@@ -29,6 +37,7 @@ type config struct {
 	env    string
 	apiURL string
 	mail   mailConfig
+	frontendURL string
 }
 
 type dbConfig struct {

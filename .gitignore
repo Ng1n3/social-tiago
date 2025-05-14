@@ -1,1 +1,5 @@
 .envrc
+bin/
+/docs/swagger.json
+/docs/swagger.yaml
+/bin/*

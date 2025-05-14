@@ -5,6 +5,7 @@ import (
 
 	"github.com/Ng1n3/social/internal/db"
 	"github.com/Ng1n3/social/internal/env"
+	"github.com/Ng1n3/social/internal/mailer"
 	"github.com/Ng1n3/social/internal/store"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
@@ -34,15 +35,20 @@ func main() {
 	cfg := config{
 		addr:   env.GetString("ADDR", ":3050"),
 		apiURL: env.GetString("EXTERNAL_URL", "localhost:5000"),
+		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		db: dbConfig{
-			addr:         env.GetString("DB_ADDR", "postgres://admin:superpassword@localhost:5434/social?sslmode=disable"),
+			addr:         env.GetString("DB_ADDR", "postgres://admin:superpassword@localhost:5432/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3, // 3 days,
+			exp:       time.Hour * 24 * 3, // 3 days,
+			fromEmail: env.GetString("FROM_EMAIL", ""),
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
 		},
 	}
 
@@ -66,10 +72,13 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	mailer := mailer.NewBrevo(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()

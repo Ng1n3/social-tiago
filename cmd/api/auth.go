@@ -3,9 +3,12 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+
 	// "fmt"
 	"net/http"
 
+	"github.com/Ng1n3/social/internal/mailer"
 	"github.com/Ng1n3/social/internal/store"
 	"github.com/google/uuid"
 )
@@ -17,8 +20,8 @@ type RegisterUserPayload struct {
 }
 
 type UserWithToken struct {
-  *store.User
-  Token string `json:"token"`
+	*store.User
+	Token string `json:"token"`
 }
 
 // registerUserHandler godoc
@@ -72,18 +75,40 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		case store.ErrDuplicateUsername:
 			app.badRequestResponse(w, r, err)
 		default:
-      // fmt.Println("Here dude!")
+			// fmt.Println("Here dude!")
 			app.internalServerError(w, r, err)
 		}
 		return
 	}
 
-  userWithToken := UserWithToken{
-    User: user,
-    Token: plainToken,
-  }
+	userWithToken := UserWithToken{
+		User:  user,
+		Token: plainToken,
+	}
 
-	// mail
+	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+
+	isProdEnv := app.config.env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+
+	// ssend mail
+	err = app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		app.logger.Errorw("error sending welcome email", "error", err.Error())
+
+		// roll back user creation if email fails (SAGA pattern)
+		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("error deleting user", "error", err.Error())
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
 
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)
