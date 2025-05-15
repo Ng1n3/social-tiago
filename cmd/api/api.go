@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Ng1n3/social/docs" // This is required to generate swagger docs
+	"github.com/Ng1n3/social/internal/auth"
 	"github.com/Ng1n3/social/internal/mailer"
 	"github.com/Ng1n3/social/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -16,10 +17,11 @@ import (
 )
 
 type application struct {
-	config config
-	store  store.Storage
-	logger *zap.SugaredLogger
-	mailer mailer.Client
+	config        config
+	store         store.Storage
+	logger        *zap.SugaredLogger
+	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 
 type mailConfig struct {
@@ -33,12 +35,29 @@ type sendGridConfig struct {
 }
 
 type config struct {
-	db     dbConfig
-	addr   string
-	env    string
-	apiURL string
-	mail   mailConfig
+	db          dbConfig
+	addr        string
+	env         string
+	apiURL      string
+	mail        mailConfig
 	frontendURL string
+	auth        authConfig
+}
+
+type authConfig struct {
+	basic basicConfig
+	token tokenConfig
+}
+
+type tokenConfig struct {
+	secret string
+	exp    time.Duration
+	iss    string
+}
+
+type basicConfig struct {
+	user string
+	pass string
 }
 
 type dbConfig struct {
@@ -52,15 +71,15 @@ func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
-    // AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-    AllowedOrigins:   []string{"https://*", "http://*"},
-    // AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-    AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-    AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-    ExposedHeaders:   []string{"Link"},
-    AllowCredentials: false,
-    MaxAge:           300, // Maximum value not ignored by any of major browsers
-  }))
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -73,7 +92,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/health", app.healthCheckHandler)
+		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
 
 		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
@@ -105,6 +124,7 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
+			r.Post("/token", app.createTokenHandler)
 		})
 	})
 

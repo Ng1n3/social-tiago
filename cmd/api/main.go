@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/Ng1n3/social/internal/auth"
 	"github.com/Ng1n3/social/internal/db"
 	"github.com/Ng1n3/social/internal/env"
 	"github.com/Ng1n3/social/internal/mailer"
@@ -33,8 +34,8 @@ const version = "0.0.1"
 // @description
 func main() {
 	cfg := config{
-		addr:   env.GetString("ADDR", ":3050"),
-		apiURL: env.GetString("EXTERNAL_URL", "localhost:5000"),
+		addr:        env.GetString("ADDR", ":3050"),
+		apiURL:      env.GetString("EXTERNAL_URL", "localhost:5000"),
 		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:5173"),
 		db: dbConfig{
 			addr:         env.GetString("DB_ADDR", "postgres://admin:superpassword@localhost:5432/social?sslmode=disable"),
@@ -48,6 +49,17 @@ func main() {
 			fromEmail: env.GetString("FROM_EMAIL", ""),
 			sendGrid: sendGridConfig{
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
+		},
+		auth: authConfig{
+			basic: basicConfig{
+				user: env.GetString("AUTH_BASIC_USER", "admin"),
+				pass: env.GetString("AUTH_BASIC_PASS", "admin"),
+			},
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "example"),
+				exp:    time.Hour * 24 * 3, // 3 days,
+				iss:    "gopherSocial",
 			},
 		},
 	}
@@ -74,11 +86,14 @@ func main() {
 
 	mailer := mailer.NewBrevo(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 
+	jWTAuthenticator := auth.NewJwtAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: jWTAuthenticator,
 	}
 
 	mux := app.mount()
