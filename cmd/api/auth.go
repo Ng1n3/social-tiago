@@ -53,6 +53,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	user := &store.User{
 		Username: userPayload.Username,
 		Email:    userPayload.Email,
+		Role: store.Role{
+			Name: "user",
+		},
 	}
 	// hash the user password
 	if err := user.Password.Set(userPayload.Password); err != nil {

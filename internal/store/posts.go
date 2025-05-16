@@ -121,8 +121,8 @@ func (s *PostStore) GetByID(ctx context.Context, id int64) (*Post, error) {
 		&post.Content,
 		&post.CreatedAt,
 		&post.UpdatedAt,
-		&post.Version,
 		pq.Array(&post.Tags),
+		&post.Version,
 	)
 
 	if err != nil {
@@ -163,7 +163,7 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	query := `
 		UPDATE posts
 		SET title = $1, content = $2, version = version + 1
-		WHERE id = $3 AMD VERSOPM $4
+		WHERE id = $3 AND VERSION = $4
 		RETURNING version
 	`
 

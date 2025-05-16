@@ -48,11 +48,14 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 	user := getUserFromCtx(r)
 
+	// app.logger.Infow("Role check result",
+	// 	"userRoleLevel", user.Role.Level)
+
 	post := &store.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID: user.ID,
+		UserID:  user.ID,
 	}
 
 	ctx := r.Context()
@@ -162,7 +165,7 @@ type UpdatePostPayload struct {
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Security		ApiKeyAuth
-//	@Router			/posts/{id} [put]
+//	@Router			/posts/{id} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 

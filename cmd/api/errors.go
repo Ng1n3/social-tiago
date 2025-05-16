@@ -18,6 +18,12 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusBadRequest, err.Error())
 }
 
+func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request,) {
+
+	app.logger.Warnw("forbidden request request", "method", r.Method, "path", r.URL.Path, "error")
+	writeJSON(w, http.StatusForbidden, "forbidden")
+}
+
 func (app *application) notFound(w http.ResponseWriter, r *http.Request, err error) {
 
 	app.logger.Errorw("Not found", "method", r.Method, "path", r.URL.Path, "error", err.Error())
