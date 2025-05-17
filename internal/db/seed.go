@@ -217,16 +217,20 @@ func generateUsers(num int) []*store.User {
 	for i := 0; i < num; i++ {
 		randomSuffix := fmt.Sprintf("%d_%d", i, rand.Intn(100))
 		username := usernames[i%len(usernames)] + randomSuffix
-		users[i] = &store.User{
+		user := &store.User{
 			// Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", 1),
 			// Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", 1) + "@example.com",
 			Username: username,
 			Email:    username + "@example.com",
-			Role:   store.Role{
+			Role: store.Role{
 				Name: "user",
 			},
-			// Password: "12345",
 		}
+		if err := user.Password.Set("12345"); err != nil {
+			log.Printf("Error setting password for user %s: %v", username, err)
+			continue
+		}
+		users[i] = user
 	}
 
 	return users
