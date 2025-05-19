@@ -13,6 +13,7 @@ import (
 	"github.com/Ng1n3/social/docs" // This is required to generate swagger docs
 	"github.com/Ng1n3/social/internal/auth"
 	"github.com/Ng1n3/social/internal/mailer"
+	"github.com/Ng1n3/social/internal/ratelimiter"
 	"github.com/Ng1n3/social/internal/store"
 	"github.com/Ng1n3/social/internal/store/cache"
 	"github.com/go-chi/chi/v5"
@@ -29,6 +30,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type mailConfig struct {
@@ -50,6 +52,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	redisCfg    redisConfig
+	rateLimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -100,6 +103,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimiterMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
