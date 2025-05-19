@@ -2,10 +2,11 @@ package main
 
 import (
 	"net/http"
+	"time"
 )
 
 // healthCheck godoc
-// 
+//
 //	@Summary		checks health of API
 //	@Description	CHecks if API is up and running
 //	@Tags			ops
@@ -22,6 +23,8 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 		"env":     app.config.env,
 		"version": version,
 	}
+
+	time.Sleep(time.Second * 3)
 	if err := app.jsonResponse(w, http.StatusOK, data); err != nil {
 		app.internalServerError(w, r, err)
 	}
