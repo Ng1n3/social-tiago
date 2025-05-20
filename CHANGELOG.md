@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/Ng1n3/social-tiago/compare/v1.3.0...v1.4.0) (2025-05-20)
+
+
+### Features
+
+* dockerfile ([bcbedd1](https://github.com/Ng1n3/social-tiago/commit/bcbedd148b741645c931153ea1d5b55c3662fb04))
+
+
+### Bug Fixes
+
+* fix typo error ([9567ca3](https://github.com/Ng1n3/social-tiago/commit/9567ca30da54acbbd575d0634cda5e33b751242a))
+
 ## [1.3.0](https://github.com/Ng1n3/social-tiago/compare/v1.2.0...v1.3.0) (2025-05-20)
 
 
