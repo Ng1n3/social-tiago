@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Ng1n3/social-tiago/compare/v1.1.0...v1.2.0) (2025-05-20)
+
+
+### Features
+
+* update the versioning in api automatically ([ecce35c](https://github.com/Ng1n3/social-tiago/commit/ecce35c30147be2f97c414df0e1aad332d4d52d0))
+
 ## [1.1.0](https://github.com/Ng1n3/social-tiago/compare/v1.0.0...v1.1.0) (2025-05-20)
 
 
