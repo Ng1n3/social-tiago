@@ -12,6 +12,7 @@ import (
 
 	"github.com/Ng1n3/social/docs" // This is required to generate swagger docs
 	"github.com/Ng1n3/social/internal/auth"
+	"github.com/Ng1n3/social/internal/env"
 	"github.com/Ng1n3/social/internal/mailer"
 	"github.com/Ng1n3/social/internal/ratelimiter"
 	"github.com/Ng1n3/social/internal/store"
@@ -88,9 +89,13 @@ type dbConfig struct {
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedOrigins: []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:5173")},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -98,11 +103,6 @@ func (app *application) mount() http.Handler {
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
-
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
 	r.Use(app.RateLimiterMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
